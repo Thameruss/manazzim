@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منظم الجدول الدراسي - ثامر المطيري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#0f172a', 
+                            card: '#1e293b', 
+                            accent: '#10b981', 
+                            danger: '#ef4444', 
+                            warning: '#f59e0b'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0f172a; color: #f1f5f9; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .grade-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .grade-card:active { transform: scale(0.98); }
+        .grade-card:hover {
+            border-color: #10b981;
+            background: rgba(30, 41, 59, 0.9);
+        }
+        .grade-card.selected {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: #10b981;
+            box-shadow: 0 4px 20px -5px rgba(16, 185, 129, 0.2);
+        }
+        .grade-card.selected .grade-badge {
+            background-color: #10b981;
+            color: #0f172a;
+        }
+
+        .cursor-grab { cursor: grab; }
+        .cursor-grab:active { cursor: grabbing; }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 640px) {
+            .input-days { font-size: 1.1rem; padding: 0.5rem; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans overflow-x-hidden">
+
+    <!-- Grade Selection Modal -->
+    <div id="gradeSelectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/95 backdrop-blur-sm px-4 py-6 overflow-y-auto">
+        <div class="max-w-xl w-full bg-slate-800 rounded-3xl p-5 md:p-8 border border-slate-700 shadow-2xl text-center animate-fade-in relative my-auto">
+            
+            <div class="mb-6 md:mb-8">
+                <div class="h-14 w-14 md:h-16 md:w-16 bg-brand-accent/10 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
+                    <i class="fa-solid fa-graduation-cap text-2xl md:text-3xl text-brand-accent"></i>
+                </div>
+                <h2 class="text-xl md:text-3xl font-bold text-white mb-2">اختر مرحلتك الدراسية</h2>
+                <p class="text-slate-400 text-xs md:text-sm">سيتم ضبط المواد والجدول تلقائياً بناءً على اختيارك</p>
+            </div>
+            
+            <div class="space-y-3 mb-6 md:mb-8">
+                <!-- Grade 10 -->
+                <div onclick="selectGrade(10)" id="grade10Btn" class="grade-card group border border-slate-700 bg-slate-800/50 rounded-2xl p-3 md:p-4 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 md:gap-4">
+                            <div class="grade-badge h-10 w-10 md:h-12 md:w-12 rounded-xl bg-slate-700 flex items-center justify-center text-white font-bold text-lg md:text-xl transition-colors">
+                                10
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-base md:text-lg font-bold text-white group-hover:text-brand-accent transition-colors">الصف العاشر</h3>
+                                <div class="flex items-center gap-2 mt-0.5 md:mt-1">
+                                    <span class="text-[10px] md:text-[11px] bg-slate-700/50 px-2 py-0.5 rounded-full text-slate-400">
+                                        <i class="fa-regular fa-calendar ml-1"></i> 2025/12/17
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-5 w-5 md:h-6 md:w-6 rounded-full border-2 border-slate-600 flex items-center justify-center check-circle transition-colors">
+                            <div class="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-brand-accent hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grade 11 -->
+                <div onclick="selectGrade(11)" id="grade11Btn" class="grade-card group border border-slate-700 bg-slate-800/50 rounded-2xl p-3 md:p-4 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 md:gap-4">
+                            <div class="grade-badge h-10 w-10 md:h-12 md:w-12 rounded-xl bg-slate-700 flex items-center justify-center text-white font-bold text-lg md:text-xl transition-colors">
+                                11
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-base md:text-lg font-bold text-white group-hover:text-brand-accent transition-colors">الصف الحادي عشر</h3>
+                                <div class="flex items-center gap-2 mt-0.5 md:mt-1">
+                                    <span class="text-[10px] md:text-[11px] bg-slate-700/50 px-2 py-0.5 rounded-full text-slate-400">
+                                        <i class="fa-regular fa-calendar ml-1"></i> 2025/12/17
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-5 w-5 md:h-6 md:w-6 rounded-full border-2 border-slate-600 flex items-center justify-center check-circle transition-colors">
+                            <div class="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-brand-accent hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grade 12 -->
+                <div onclick="selectGrade(12)" id="grade12Btn" class="grade-card group border border-slate-700 bg-slate-800/50 rounded-2xl p-3 md:p-4 relative">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3 md:gap-4">
+                            <div class="grade-badge h-10 w-10 md:h-12 md:w-12 rounded-xl bg-slate-700 flex items-center justify-center text-white font-bold text-lg md:text-xl transition-colors">
+                                12
+                            </div>
+                            <div class="text-right">
+                                <h3 class="text-base md:text-lg font-bold text-white group-hover:text-brand-accent transition-colors">الصف الثاني عشر</h3>
+                                <div class="flex items-center gap-2 mt-0.5 md:mt-1">
+                                    <span class="text-[10px] md:text-[11px] bg-slate-700/50 px-2 py-0.5 rounded-full text-slate-400">
+                                        <i class="fa-regular fa-calendar ml-1"></i> 2026/1/4
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-5 w-5 md:h-6 md:w-6 rounded-full border-2 border-slate-600 flex items-center justify-center check-circle transition-colors">
+                            <div class="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full bg-brand-accent hidden"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="confirmGrade()" id="startBtn" disabled class="w-full bg-slate-700 text-slate-400 font-bold py-3.5 md:py-4 rounded-xl transition-all duration-300 text-base md:text-lg hover:shadow-lg hover:shadow-brand-accent/20 active:scale-95">
+                ابدأ التنظيم
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="appContent" class="flex-grow p-3 md:p-8 opacity-0 transition-opacity duration-700 pointer-events-none">
+        <div class="max-w-4xl mx-auto">
+            
+            <header class="text-center mb-6 md:mb-8 mt-2 md:mt-0">
+                <div class="inline-flex items-center gap-2 bg-slate-800 px-3 py-1 md:px-4 md:py-1.5 rounded-full border border-slate-700 mb-3 md:mb-4 shadow-sm">
+                    <span class="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-brand-accent animate-pulse"></span>
+                    <span class="text-[10px] md:text-xs font-bold text-slate-300" id="gradeBadge">--</span>
+                </div>
+                <h1 class="text-2xl md:text-4xl font-extrabold text-white mb-2 tracking-tight">منظم الجدول الدراسي</h1>
+                <p class="text-slate-400 text-xs md:text-base">آخر يوم للمذاكرة: <span id="deadlineDisplay" class="text-brand-accent font-bold">--</span></p>
+            </header>
+
+            <div class="glass-effect rounded-2xl md:rounded-3xl p-4 md:p-8 mb-6 md:mb-8 shadow-2xl border border-slate-700/50 transition-colors duration-300" id="budgetCard">
+                
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8 gap-4 md:gap-6">
+                    <div class="text-center md:text-right">
+                        <h2 class="text-lg md:text-xl font-bold text-white mb-1">توزيع الأيام</h2>
+                        <p class="text-[10px] md:text-xs text-slate-400">حدد عدد الأيام التي تحتاجها لكل مادة</p>
+                    </div>
+                    
+                    <div class="bg-slate-900/80 px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl border border-slate-700 w-full md:w-auto flex items-center justify-center md:justify-start gap-4 md:gap-6 shadow-inner">
+                        <div class="text-center">
+                            <span class="block text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">المتاح</span>
+                            <span id="daysBank" class="text-lg md:text-2xl font-bold text-white">0</span>
+                        </div>
+                        <div class="h-6 md:h-8 w-px bg-slate-700"></div>
+                        <div class="text-center">
+                            <span class="block text-[9px] md:text-[10px] text-slate-400 uppercase tracking-wider mb-0.5 md:mb-1">المستخدم</span>
+                            <span id="daysUsed" class="text-lg md:text-2xl font-bold text-brand-accent">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full bg-slate-800 h-2 md:h-3 rounded-full overflow-hidden mb-4 md:mb-6 relative shadow-inner">
+                    <div id="progressBar" class="bg-brand-accent h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+                </div>
+                
+                <div id="logicMessage" class="text-center text-xs md:text-sm mb-6 text-slate-400 bg-slate-800/30 py-2 rounded-lg border border-slate-700/30">
+                    أدخل الأيام للمواد بالأسفل ليبدأ الحساب
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8" id="subjectsInputs">
+                    <!-- Javascript will inject inputs here based on grade -->
+                </div>
+
+                <div class="flex justify-center">
+                    <button id="generateBtn" onclick="initScheduleGeneration()" disabled 
+                        class="bg-slate-700 text-slate-400 font-bold py-3 px-8 md:px-10 rounded-xl shadow-lg cursor-not-allowed transition-all w-full md:w-auto text-base md:text-lg border border-transparent active:scale-95">
+                        أدخل الأيام أولاً
+                    </button>
+                </div>
+            </div>
+
+            <div id="scheduleResultContainer" class="hidden animate-fade-in pb-10">
+                <div class="bg-gradient-to-r from-blue-900/40 to-slate-900/40 border border-blue-500/20 p-3 md:p-4 rounded-xl mb-4 md:mb-6 flex items-start md:items-center gap-3 md:gap-4 shadow-lg">
+                    <div class="bg-blue-500/10 p-1.5 md:p-2 rounded-lg text-blue-400 shrink-0">
+                        <i class="fas fa-hand-pointer text-base md:text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-blue-200 font-bold text-xs md:text-sm mb-0.5">ترتيب ذكي</h4>
+                        <p class="text-[10px] md:text-sm text-blue-300/80 leading-relaxed">
+                            اضغط واسحب من أيقونة ( <i class="fa-solid fa-grip-vertical text-[9px]"></i> ) لترتيب الأولويات، وسيتحدث الجدول فوراً.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="glass-effect rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-brand-card border border-slate-700/50">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right" id="scheduleTable">
+                            <thead>
+                                <tr class="bg-slate-800/50 text-slate-400 text-[10px] md:text-sm uppercase tracking-wider">
+                                    <th class="py-3 px-2 md:py-4 md:px-4 w-8 md:w-12 text-center">#</th> 
+                                    <th class="py-3 px-2 md:py-4 md:px-4 min-w-[120px]">المادة</th>
+                                    <th class="py-3 px-2 md:py-4 md:px-4">المدة</th>
+                                    <th class="py-3 px-2 md:py-4 md:px-4 min-w-[100px]">التاريخ المقترح</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm md:text-lg divide-y divide-slate-700/50" id="sortableList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-auto py-6 md:py-8 text-center border-t border-slate-800 bg-slate-900/80 backdrop-blur px-4">
+        <div class="flex flex-col items-center justify-center gap-3 md:gap-4">
+            <p class="text-slate-400 font-medium text-xs md:text-sm">
+                Designed with <i class="fa-solid fa-code text-brand-accent mx-1"></i> by <span class="text-white font-bold">Thamer Almutairi</span>
+            </p>
+            <a href="https://twitter.com/sliusx" target="_blank" class="group flex items-center gap-2 md:gap-3 text-slate-400 hover:text-white transition-all bg-slate-800 hover:bg-black px-4 py-2 md:px-5 md:py-2.5 rounded-full border border-slate-700 hover:border-slate-600 shadow-sm hover:shadow-md">
+                <i class="fa-brands fa-x-twitter text-base md:text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="text-xs md:text-sm font-bold">Follow on X</span>
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        const commonSubjects = [
+            { id: 'quran', name: 'القرآن الكريم', icon: '🕌' },
+            { id: 'islamic', name: 'التربية الإسلامية', icon: '🌙' },
+            { id: 'arabic', name: 'اللغة العربية', icon: '📖' },
+            { id: 'english', name: 'اللغة الإنجليزية', icon: '🅰️' },
+            { id: 'math', name: 'الرياضيات', icon: '📐' },
+            { id: 'physics', name: 'الفيزياء', icon: '⚛️' },
+            { id: 'chemistry', name: 'الكيمياء', icon: '🧪' },
+            { id: 'biology', name: 'الأحياء', icon: '🧬' }
+        ];
+
+        let activeSubjects = [];
+        let activeSchedule = [];
+        let selectedGrade = null;
+        let lastStudyDate = null;
+        let maxDaysAvailable = 0;
+        let sortableInstance = null;
+
+        function selectGrade(grade) {
+            selectedGrade = grade;
+            
+            document.querySelectorAll('.grade-card').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelector('.check-circle div').classList.add('hidden');
+                el.querySelector('.check-circle').classList.remove('border-brand-accent');
+                el.querySelector('.check-circle').classList.add('border-slate-600');
+            });
+            
+            const btnId = 'grade' + grade + 'Btn';
+            const selectedEl = document.getElementById(btnId);
+            selectedEl.classList.add('selected');
+            
+            const checkCircle = selectedEl.querySelector('.check-circle');
+            checkCircle.classList.remove('border-slate-600');
+            checkCircle.classList.add('border-brand-accent');
+            checkCircle.querySelector('div').classList.remove('hidden');
+
+            const startBtn = document.getElementById('startBtn');
+            startBtn.disabled = false;
+            startBtn.classList.remove('bg-slate-700', 'text-slate-400');
+            startBtn.classList.add('bg-brand-accent', 'text-brand-dark', 'hover:bg-emerald-400', 'shadow-lg');
+            startBtn.innerHTML = `ابدأ تنظيم الصف ${grade} <i class="fa-solid fa-arrow-left mr-2"></i>`;
+        }
+
+        function confirmGrade() {
+            if (!selectedGrade) return;
+
+            if (selectedGrade === 10) {
+                activeSubjects = [...commonSubjects, { id: 'history', name: 'تاريخ الكويت', icon: '🇰🇼' }];
+                lastStudyDate = new Date('2025-12-16');
+                document.getElementById('gradeBadge').innerText = "الصف العاشر";
+            
+            } else if (selectedGrade === 11) {
+                activeSubjects = [...commonSubjects, { id: 'geology', name: 'الجيولوجيا', icon: '⛰️' }];
+                lastStudyDate = new Date('2025-12-16');
+                document.getElementById('gradeBadge').innerText = "الصف الحادي عشر";
+
+            } else {
+                activeSubjects = [...commonSubjects, { id: 'constitution', name: 'الدستور', icon: '⚖️' }];
+                lastStudyDate = new Date('2026-01-03');
+                document.getElementById('gradeBadge').innerText = "الصف الثاني عشر";
+            }
+
+            document.getElementById('deadlineDisplay').innerText = lastStudyDate.toLocaleDateString('ar-KW');
+
+            calculateMaxDays();
+            renderInputs();
+            updateLogic();
+
+            const modal = document.getElementById('gradeSelectionModal');
+            const app = document.getElementById('appContent');
+            
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                app.classList.remove('opacity-0', 'pointer-events-none');
+                app.classList.add('opacity-100');
+            }, 300);
+        }
+
+        function calculateMaxDays() {
+            const today = new Date();
+            const studyStart = new Date();
+            studyStart.setDate(today.getDate() + 1);
+            
+            const diffTime = lastStudyDate - studyStart;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            maxDaysAvailable = diffDays + 1; 
+            if (maxDaysAvailable < 0) maxDaysAvailable = 0;
+            document.getElementById('daysBank').innerText = maxDaysAvailable;
+        }
+
+        function renderInputs() {
+            const container = document.getElementById('subjectsInputs');
+            container.innerHTML = ''; 
+            
+            activeSubjects.forEach(sub => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700 hover:border-slate-600 focus-within:border-brand-accent transition-all duration-200 group";
+                div.innerHTML = `
+                    <label class="flex items-center gap-3 font-medium text-sm md:text-lg text-slate-200 group-hover:text-white transition-colors">
+                        <span class="bg-slate-700/50 w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center text-base md:text-lg">${sub.icon}</span>
+                        ${sub.name}
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="days-${sub.id}" value="0" min="0" max="30" oninput="updateLogic()"
+                        class="w-12 md:w-16 bg-slate-900 border border-slate-600 rounded-lg p-1.5 md:p-2 text-center focus:outline-none text-white font-bold input-days transition-all focus:ring-2 focus:ring-brand-accent/50 text-sm md:text-base">
+                        <span class="text-[10px] md:text-sm text-slate-500 font-medium">أيام</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateLogic() {
+            let totalUsed = 0;
+            const inputs = document.querySelectorAll('.input-days');
+            
+            inputs.forEach(input => {
+                const val = parseInt(input.value) || 0;
+                if(val < 0) input.value = 0; 
+                totalUsed += val;
+            });
+
+            document.getElementById('daysUsed').innerText = totalUsed;
+            
+            const percentage = Math.min((totalUsed / maxDaysAvailable) * 100, 100);
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+
+            const budgetCard = document.getElementById('budgetCard');
+            const message = document.getElementById('logicMessage');
+            const btn = document.getElementById('generateBtn');
+            const daysUsedText = document.getElementById('daysUsed');
+
+            if (totalUsed === 0) {
+                progressBar.className = "bg-brand-accent h-full transition-all duration-500";
+                budgetCard.style.borderColor = "rgba(51, 65, 85, 0.5)";
+                message.innerHTML = "وزع أيامك بذكاء يا بطل 💪";
+                btn.disabled = true;
+                btn.className = "bg-slate-700 text-slate-400 font-bold py-3 px-10 rounded-xl shadow-lg cursor-not-allowed transition-all w-full md:w-auto text-base md:text-lg border border-transparent";
+                daysUsedText.className = "text-lg md:text-2xl font-bold text-white";
+            
+            } else if (totalUsed <= maxDaysAvailable) {
+                progressBar.className = "bg-brand-accent h-full transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]";
+                budgetCard.style.borderColor = "#10b981";
+                daysUsedText.className = "text-lg md:text-2xl font-bold text-brand-accent";
+                
+                const remaining = maxDaysAvailable - totalUsed;
+                if(remaining === 0) {
+                     message.innerHTML = `<span class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle ml-1"></i> ممتاز!</span> خطة كاملة ومثالية 100%`;
+                } else {
+                     message.innerHTML = `<span class="text-emerald-400 font-bold">الجدول سليم.</span> متبقي لديك <span class="bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-300 font-bold">${remaining}</span> يوم للمراجعة.`;
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = `اعتمد الجدول <i class="fa-solid fa-rocket mr-2"></i>`;
+                btn.className = "bg-brand-accent hover:bg-emerald-500 text-brand-dark font-bold py-3 px-10 rounded-xl shadow-lg shadow-brand-accent/20 transition-all transform hover:-translate-y-1 w-full md:w-auto text-base md:text-lg";
+
+            } else {
+                progressBar.className = "bg-red-500 h-full transition-all duration-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
+                budgetCard.style.borderColor = "#ef4444";
+                daysUsedText.className = "text-lg md:text-2xl font-bold text-red-500";
+                
+                const over = totalUsed - maxDaysAvailable;
+                message.innerHTML = `<span class="text-red-400 font-bold"><i class="fa-solid fa-triangle-exclamation ml-1"></i> انتبه:</span> تجاوزت الوقت المتاح بـ <span class="bg-red-500/20 px-2 py-0.5 rounded text-red-300 font-bold">${over}</span> يوم!`;
+
+                btn.disabled = true;
+                btn.innerText = `قلل ${over} يوم`;
+                btn.className = "bg-red-900/30 text-red-400 border border-red-500/50 font-bold py-3 px-10 rounded-xl shadow-lg cursor-not-allowed shake-element w-full md:w-auto text-base md:text-lg";
+            }
+        }
+
+        function initScheduleGeneration() {
+            activeSchedule = [];
+            activeSubjects.forEach(sub => {
+                const daysInput = document.getElementById(`days-${sub.id}`).value;
+                const days = parseInt(daysInput) || 0;
+                if (days > 0) {
+                    activeSchedule.push({ ...sub, days: days });
+                }
+            });
+            renderScheduleList();
+            
+            document.getElementById('scheduleResultContainer').classList.remove('hidden');
+            document.getElementById('scheduleResultContainer').scrollIntoView({ behavior: 'smooth' });
+
+            const el = document.getElementById('sortableList');
+            if(sortableInstance) sortableInstance.destroy();
+            sortableInstance = Sortable.create(el, {
+                animation: 200,
+                handle: '.drag-handle',
+                ghostClass: 'bg-slate-700/50',
+                dragClass: 'opacity-50',
+                onEnd: function (evt) {
+                    const item = activeSchedule.splice(evt.oldIndex, 1)[0];
+                    activeSchedule.splice(evt.newIndex, 0, item);
+                    renderScheduleList(); 
+                },
+            });
+        }
+
+        function renderScheduleList() {
+            const tbody = document.getElementById('sortableList');
+            tbody.innerHTML = '';
+            
+            let currentDateTracker = new Date();
+            currentDateTracker.setDate(currentDateTracker.getDate() + 1); 
+
+            activeSchedule.forEach((item, index) => {
+                const startDate = new Date(currentDateTracker);
+                const endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + (item.days - 1));
+
+                currentDateTracker = new Date(endDate);
+                currentDateTracker.setDate(currentDateTracker.getDate() + 1);
+
+                const startStr = startDate.toLocaleDateString('ar-KW', { day: 'numeric', month: 'short' });
+                const endStr = endDate.toLocaleDateString('ar-KW', { day: 'numeric', month: 'short' });
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/30 transition-colors group";
+                tr.innerHTML = `
+                    <td class="py-3 px-2 md:py-4 md:px-4 drag-handle cursor-grab text-slate-600 hover:text-brand-accent text-center transition-colors">
+                        <i class="fa-solid fa-grip-vertical text-base md:text-lg"></i>
+                    </td>
+                    <td class="py-3 px-2 md:py-4 md:px-4 font-bold text-slate-200 flex items-center gap-2 md:gap-3">
+                        <span class="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sm md:text-lg shrink-0">${item.icon}</span> 
+                        <span class="text-sm md:text-base">${item.name}</span>
+                    </td>
+                    <td class="py-3 px-2 md:py-4 md:px-4 font-bold text-white">
+                        <span class="bg-brand-accent/10 text-brand-accent px-2 py-0.5 md:px-3 md:py-1 rounded-lg border border-brand-accent/20 text-xs md:text-base whitespace-nowrap">
+                            ${item.days} يوم
+                        </span>
+                    </td>
+                    <td class="py-3 px-2 md:py-4 md:px-4 text-slate-300">
+                        <span class="bg-slate-900 px-2 py-1 md:px-3 md:py-1.5 rounded-lg border border-slate-700 whitespace-nowrap font-mono text-slate-400 text-[10px] md:text-sm">
+                            ${startStr} - ${endStr}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
